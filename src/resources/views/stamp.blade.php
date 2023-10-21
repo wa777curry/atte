@@ -71,16 +71,16 @@
                 </div>
 
                 <div class="time__form">
-                    <form class="form" action="{{ route('start_break') }}" method="post">
+                    <form class="form" action="{{ route('start_Break') }}" method="post">
                         @csrf
-                        <button class="time__button" type="submit" name="start_break" {{ $startBreakButton ? '' : 'disabled' }}>休憩開始</button>
+                        <button class="time__button" type="submit" name="start_Break" {{ $startBreakButton ? '' : 'disabled' }}>休憩開始</button>
                     </form>
                 </div>
 
                 <div class="time__form">
-                    <form class="form" action="{{ route('end_break') }}" method="post">
+                    <form class="form" action="{{ route('end_Break') }}" method="post">
                         @csrf
-                        <button class="time__button" type="submit" name="end_break" {{ $endBreakButton ? '' : 'disabled' }}>休憩終了</button>
+                        <button class="time__button" type="submit" name="end_Break" {{ $endBreakButton ? '' : 'disabled' }}>休憩終了</button>
                     </form>
                 </div>
             </div>
