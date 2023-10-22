@@ -25,8 +25,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/stamp', [AttendanceController::class, 'index'])->name('stamp');
     Route::post('/start_time', [AttendanceController::class, 'startTime'])->name('start_time');
     Route::post('/end_time', [AttendanceController::class, 'endTime'])->name('end_time');
-    Route::post('/start_Break', [AttendanceController::class, 'startBreak'])->name('start_Break');
-    Route::post('/end_Break', [AttendanceController::class, 'endBreak'])->name('end_Break');
+    Route::post('/start_Rest', [AttendanceController::class, 'startRest'])->name('start_Rest');
+    Route::post('/end_Rest', [AttendanceController::class, 'endRest'])->name('end_Rest');
 
     Route::get('/attendance', [AttendanceController::class, 'attendance'])->name('attendance');
     Route::get('/attendance/{date}', [AttendanceController::class, 'attendanceDate'])->name('attendance.date');

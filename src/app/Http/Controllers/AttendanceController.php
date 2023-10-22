@@ -12,46 +12,39 @@ use Carbon\Carbon;
 
 class AttendanceController extends Controller
 {
-    public function __construct()
-    {
+    public function __construct() {
         $this->middleware('auth');
     }
 
     //　打刻ページ関連
 
-    public function index()
-    {
+    public function index() {
         $user = Auth::user();
-        /*
-        $date = now()->toDateString();
-
-        // 当日の勤務記録を取得
         $attendance = Attendance::where('user_id', $user->id)
-            ->where('date', $date)
+            ->where('end_time', null)
+            ->latest()
             ->first();
 
         $data = [
-            'startButton' => false,
+            'startButton' => true,
             'endButton' => false,
-            'startBreakButton' => false,
-            'endBreakButton' => false,
+            'startRestButton' => false,
+            'endRestButton' => false,
         ];
 
-        if (!$attendance || $attendance->start_time && $attendance->end_time) {
-            // 勤務記録が存在しないか、既に勤務が終了している場合
-            $data['startButton'] = true;
-        } elseif ($attendance->start_Break && !$attendance->end_Break) {
-            // 休憩中の場合
-            $data['endBreakButton'] = true;
-        } elseif ($attendance->start_time && !$attendance->end_time) {
-            // 勤務中の場合
-            $data['endButton'] = true;
-            $data['startBreakButton'] = true;
+        if ($attendance) {
+            $data['startButton'] = false;
+            if (!$attendance->end_time) {
+                $data['endButton'] = true;
+                $data['startRestButton'] = true;
+            } elseif (!$attendance->end_Rest) {
+                $data['endRestButton'] = true;
+            }
         }
+
         return view('stamp', $data);
-        */
-        return view('stamp');
     }
+
 
     // 打刻関連
 
@@ -81,7 +74,7 @@ class AttendanceController extends Controller
 
 
         /*
-    public function startBreak()
+    public function startRest()
     {
         $user = Auth::user();
         $date = now()->toDateString();
@@ -90,14 +83,14 @@ class AttendanceController extends Controller
             'user_id' => $user->id,
             'date' => $date,
         ]);
-        if (!$attendance->start_Break) {
-            $attendance->start_Break = now();
+        if (!$attendance->start_Rest) {
+            $attendance->start_Rest = now();
             $attendance->save();
         }
         return redirect()->route('stamp');
     }
 
-    public function endBreak()
+    public function endRest()
     {
         $user = Auth::user();
         $date = now()->toDateString();
@@ -106,8 +99,8 @@ class AttendanceController extends Controller
             'user_id' => $user->id,
             'date' => $date,
         ]);
-        if (!$attendance->end_Break) {
-            $attendance->end_Break = now();
+        if (!$attendance->end_Rest) {
+            $attendance->end_Rest = now();
             $attendance->save();
         }
         return redirect()->route('stamp');
@@ -129,14 +122,14 @@ class AttendanceController extends Controller
         foreach ($datebases as $datebase) {
             $datebase->start_time = Carbon::parse($datebase->start_time)->format('H:i:s');
             $datebase->end_time = Carbon::parse($datebase->end_time)->format('H:i:s');
-            $startBreak = Carbon::parse($datebase->start_Break);
-            $endBreak = Carbon::parse($datebase->end_Break);
-            $datebase->Break_time = $endBreak->diff($startBreak)->format('%H:%I:%S');
+            $startRest = Carbon::parse($datebase->start_Rest);
+            $endRest = Carbon::parse($datebase->end_Rest);
+            $datebase->rest_time = $endRest->diff($startRest)->format('%H:%I:%S');
 
             $startTime = Carbon::parse($datebase->start_time);
             $endTime = Carbon::parse($datebase->end_time);
-            $BreakTime = Carbon::parse($datebase->Break_time);
-            $workTime = $endTime->diff(($startTime)->sub($endBreak->diff($startBreak)));
+            $restTime = Carbon::parse($datebase->rest_time);
+            $workTime = $endTime->diff(($startTime)->sub($endRest->diff($startRest)));
             $datebase->work_time = $workTime->format('%H:%I:%S');
         }
 
@@ -158,14 +151,14 @@ class AttendanceController extends Controller
         foreach ($datebases as $datebase) {
             $datebase->start_time = Carbon::parse($datebase->start_time)->format('H:i:s');
             $datebase->end_time = Carbon::parse($datebase->end_time)->format('H:i:s');
-            $startBreak = Carbon::parse($datebase->start_Break);
-            $endBreak = Carbon::parse($datebase->end_Break);
-            $datebase->Break_time = $endBreak->diff($startBreak)->format('%H:%I:%S');
+            $startRest = Carbon::parse($datebase->start_Rest);
+            $endRest = Carbon::parse($datebase->end_Rest);
+            $datebase->rest_time = $endRest->diff($startRest)->format('%H:%I:%S');
 
             $startTime = Carbon::parse($datebase->start_time);
             $endTime = Carbon::parse($datebase->end_time);
-            $BreakTime = Carbon::parse($datebase->Break_time);
-            $workTime = $endTime->diff(($startTime)->sub($endBreak->diff($startBreak)));
+            $restTime = Carbon::parse($datebase->rest_time);
+            $workTime = $endTime->diff(($startTime)->sub($endRest->diff($startRest)));
             $datebase->work_time = $workTime->format('%H:%I:%S');
         }
 

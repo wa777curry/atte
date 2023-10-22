@@ -73,7 +73,7 @@
                     {{ $datebase->end_time }}
                 </div>
                 <div class="date__content--record">
-                    {{ $datebase->Break_time }}
+                    {{ $datebase->rest_time }}
                 </div>
                 <div class="date__content--record">
                     {{ $datebase->work_time }}

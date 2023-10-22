@@ -44,15 +44,15 @@
             @else
             End Button is Inactive<br>
             @endif
-            @if ($startBreakButton)
-            Break Start Button is Active<br>
+            @if ($startRestButton)
+            Rest Start Button is Active<br>
             @else
-            Break Start Button is Inactive<br>
+            Rest Start Button is Inactive<br>
             @endif
-            @if ($endBreakButton)
-            Break EndButton is Active<br>
+            @if ($endRestButton)
+            Rest EndButton is Active<br>
             @else
-            Break End Button is Inactive<br>
+            Rest End Button is Inactive<br>
             @endif
 
             <div class="time__content">
@@ -71,16 +71,16 @@
                 </div>
 
                 <div class="time__form">
-                    <form class="form" action="{{ route('start_Break') }}" method="post">
+                    <form class="form" action="{{ route('start_Rest') }}" method="post">
                         @csrf
-                        <button class="time__button" type="submit" name="start_Break" {{ $startBreakButton ? '' : 'disabled' }}>休憩開始</button>
+                        <button class="time__button" type="submit" name="start_Rest" {{ $startRestButton ? '' : 'disabled' }}>休憩開始</button>
                     </form>
                 </div>
 
                 <div class="time__form">
-                    <form class="form" action="{{ route('end_Break') }}" method="post">
+                    <form class="form" action="{{ route('end_Rest') }}" method="post">
                         @csrf
-                        <button class="time__button" type="submit" name="end_Break" {{ $endBreakButton ? '' : 'disabled' }}>休憩終了</button>
+                        <button class="time__button" type="submit" name="end_Rest" {{ $endRestButton ? '' : 'disabled' }}>休憩終了</button>
                     </form>
                 </div>
             </div>

@@ -38,28 +38,28 @@
                 <div class="time__form">
                     <form class="form" action="{{ route('start_time') }}" method="post">
                         @csrf
-                        <button class="time__button" type="submit" name="start_time">勤務開始</button>
+                        <button class="time__button" type="submit" name="start_time" {{ $startButton ? '' : 'disabled' }}>勤務開始</button>
                     </form>
                 </div>
 
                 <div class="time__form">
                     <form class="form" action="{{ route('end_time') }}" method="post">
                         @csrf
-                        <button class="time__button" type="submit" name="end_time">勤務終了</button>
+                        <button class="time__button" type="submit" name="end_time" {{ $endButton ? '' : 'disabled' }}>勤務終了</button>
                     </form>
                 </div>
 
                 <div class="time__form">
-                    <form class="form" action="{{ route('start_Break') }}" method="post">
+                    <form class="form" action="{{ route('start_Rest') }}" method="post">
                         @csrf
-                        <button class="time__button" type="submit" name="start_Break">休憩開始</button>
+                        <button class="time__button" type="submit" name="start_Rest">休憩開始</button>
                     </form>
                 </div>
 
                 <div class="time__form">
-                    <form class="form" action="{{ route('end_Break') }}" method="post">
+                    <form class="form" action="{{ route('end_Rest') }}" method="post">
                         @csrf
-                        <button class="time__button" type="submit" name="end_Break">休憩終了</button>
+                        <button class="time__button" type="submit" name="end_Rest">休憩終了</button>
                     </form>
                 </div>
             </div>
