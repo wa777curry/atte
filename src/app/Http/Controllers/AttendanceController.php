@@ -22,6 +22,7 @@ class AttendanceController extends Controller
     public function index()
     {
         $user = Auth::user();
+        /*
         $date = now()->toDateString();
 
         // 当日の勤務記録を取得
@@ -48,44 +49,38 @@ class AttendanceController extends Controller
             $data['startBreakButton'] = true;
         }
         return view('stamp', $data);
+        */
+        return view('stamp');
     }
 
     // 打刻関連
 
-    public function startTime()
-    {
+    public function startTime() {
         $user = Auth::user();
-        $date = now()->toDateString();
-        // 当日の勤務記録を取得または新しいレコードを作成
-        $attendance = Attendance::firstOrNew([
+        $now = Carbon::now();
+
+        $attendance = Attendance::create([
             'user_id' => $user->id,
-            'date' => $date,
+            'start_time' => $now,
         ]);
-        // 勤務終了時間が空であることを確認
-        if (!$attendance->end_time) {
-            $attendance->start_time = now();
-            $attendance->save();
-        }
+
         return redirect()->route('stamp');
     }
 
-    public function endTime()
-    {
-        $user = Auth::user();
-        $date = now()->toDateString();
-        // 当日の勤務記録を取得または新しいレコードを作成
-        $attendance = Attendance::firstOrNew([
-            'user_id' => $user->id,
-            'date' => $date,
-        ]);
-        // 勤務終了時間が空であることを確認
-        if (!$attendance->end_time) {
-            $attendance->end_time = now();
-            $attendance->save();
+    public function endTime() {
+        $latestAttendance = Attendance::orderBy('created_at', 'desc')->first();
+
+        if ($latestAttendance) {
+            $latestAttendance->update([
+                'end_time' => now(),
+            ]);
         }
+
         return redirect()->route('stamp');
     }
 
+
+        /*
     public function startBreak()
     {
         $user = Auth::user();
@@ -176,6 +171,7 @@ class AttendanceController extends Controller
 
         return view('attendance', compact('today', 'prevDate', 'nextDate', 'attendances', 'datebases'));
     }
+    */
 
     // ログアウト関連
 

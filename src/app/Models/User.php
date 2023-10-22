@@ -14,9 +14,4 @@ class User extends Authenticatable
     public function attendances() {
         return $this->hasMany(Attendance::class);
     }
-
-    // 最終ログイン日時を更新するメソッド（いらないかも）
-    public function updateLastLogin() {
-        $this->update(['last_login_at' => now()]);
-    }
 }

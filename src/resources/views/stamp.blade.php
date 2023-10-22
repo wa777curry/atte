@@ -34,53 +34,32 @@
                 {{ Auth::user()->name }}さんお疲れ様です！
             </div>
 
-            @if ($startButton)
-            Start Button is Active<br>
-            @else
-            Start Button is Inactive<br>
-            @endif
-            @if ($endButton)
-            End Button is Active<br>
-            @else
-            End Button is Inactive<br>
-            @endif
-            @if ($startBreakButton)
-            Break Start Button is Active<br>
-            @else
-            Break Start Button is Inactive<br>
-            @endif
-            @if ($endBreakButton)
-            Break EndButton is Active<br>
-            @else
-            Break End Button is Inactive<br>
-            @endif
-
             <div class="time__content">
                 <div class="time__form">
                     <form class="form" action="{{ route('start_time') }}" method="post">
                         @csrf
-                        <button class="time__button" type="submit" name="start_time" {{ $startButton ? '' : 'disabled' }}>勤務開始</button>
+                        <button class="time__button" type="submit" name="start_time">勤務開始</button>
                     </form>
                 </div>
 
                 <div class="time__form">
                     <form class="form" action="{{ route('end_time') }}" method="post">
                         @csrf
-                        <button class="time__button" type="submit" name="end_time" {{ $endButton ? '' : 'disabled' }}>勤務終了</button>
+                        <button class="time__button" type="submit" name="end_time">勤務終了</button>
                     </form>
                 </div>
 
                 <div class="time__form">
                     <form class="form" action="{{ route('start_Break') }}" method="post">
                         @csrf
-                        <button class="time__button" type="submit" name="start_Break" {{ $startBreakButton ? '' : 'disabled' }}>休憩開始</button>
+                        <button class="time__button" type="submit" name="start_Break">休憩開始</button>
                     </form>
                 </div>
 
                 <div class="time__form">
                     <form class="form" action="{{ route('end_Break') }}" method="post">
                         @csrf
-                        <button class="time__button" type="submit" name="end_Break" {{ $endBreakButton ? '' : 'disabled' }}>休憩終了</button>
+                        <button class="time__button" type="submit" name="end_Break">休憩終了</button>
                     </form>
                 </div>
             </div>
