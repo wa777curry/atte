@@ -34,12 +34,12 @@
                 {{ Auth::user()->name }}さんお疲れ様です！
             </div>
 
-            @if ($startButton)
+            @if ($startTimeButton)
             Start Button is Active<br>
             @else
             Start Button is Inactive<br>
             @endif
-            @if ($endButton)
+            @if ($endTimeButton)
             End Button is Active<br>
             @else
             End Button is Inactive<br>
@@ -59,14 +59,14 @@
                 <div class="time__form">
                     <form class="form" action="{{ route('start_time') }}" method="post">
                         @csrf
-                        <button class="time__button" type="submit" name="start_time" {{ $startButton ? '' : 'disabled' }}>勤務開始</button>
+                        <button class="time__button" type="submit" name="start_time" {{ $startTimeButton ? '' : 'disabled' }}>勤務開始</button>
                     </form>
                 </div>
 
                 <div class="time__form">
                     <form class="form" action="{{ route('end_time') }}" method="post">
                         @csrf
-                        <button class="time__button" type="submit" name="end_time" {{ $endButton ? '' : 'disabled' }}>勤務終了</button>
+                        <button class="time__button" type="submit" name="end_time" {{ $endTimeButton ? '' : 'disabled' }}>勤務終了</button>
                     </form>
                 </div>
 

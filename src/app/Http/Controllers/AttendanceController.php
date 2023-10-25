@@ -12,35 +12,45 @@ use Carbon\Carbon;
 
 class AttendanceController extends Controller
 {
-    public function __construct() {
+    public function __construct()
+    {
         $this->middleware('auth');
     }
 
     //　打刻ページ関連
 
-    public function index() {
+    public function index()
+    {
         $user = Auth::user();
         $attendance = Attendance::where('user_id', $user->id)
             ->where('end_time', null)
             ->latest()
             ->first();
 
-        $data = [
-            'startButton' => true,
-            'endButton' => false,
-            'startRestButton' => false,
-            'endRestButton' => false,
-        ];
+        $startTimeButton = true;
+        $endTimeButton = false;
+        $startRestButton = false;
+        $endRestButton = false;
 
         if ($attendance) {
-            $data['startButton'] = false;
-            if (!$attendance->end_time) {
-                $data['endButton'] = true;
-                $data['startRestButton'] = true;
-            } elseif (!$attendance->end_Rest) {
-                $data['endRestButton'] = true;
+            $startTimeButton = false;
+            if ($attendance->start_rest) {
+                $endRestButton = true;
+            } elseif ($attendance->end_rest) {
+                $endTimeButton = true;
+                $startRestButton = true;
+            } elseif (!$attendance->end_time) {
+                $endTimeButton = true;
+                $startRestButton = true;
             }
         }
+
+        $data = [
+            'startTimeButton' => $startTimeButton,
+            'endTimeButton' => $endTimeButton,
+            'startRestButton' => $startRestButton,
+            'endRestButton' => $endRestButton,
+        ];
 
         return view('stamp', $data);
     }
@@ -72,42 +82,36 @@ class AttendanceController extends Controller
         return redirect()->route('stamp');
     }
 
+    public function startRest() {
+        $attendance = Attendance::orderBy('created_at', 'desc')->first();
+        $now = Carbon::now();
 
-        /*
-    public function startRest()
-    {
-        $user = Auth::user();
-        $date = now()->toDateString();
-        // 当日の勤務記録を取得または新しいレコードを作成
-        $attendance = Attendance::firstOrNew([
-            'user_id' => $user->id,
-            'date' => $date,
+        $rest = Rest::create([
+            'attendance_id' => $attendance->id,
+            'start_rest' => $now,
         ]);
-        if (!$attendance->start_Rest) {
-            $attendance->start_Rest = now();
-            $attendance->save();
-        }
+
         return redirect()->route('stamp');
     }
 
-    public function endRest()
-    {
-        $user = Auth::user();
-        $date = now()->toDateString();
-        // 当日の勤務記録を取得または新しいレコードを作成
-        $attendance = Attendance::firstOrNew([
-            'user_id' => $user->id,
-            'date' => $date,
-        ]);
-        if (!$attendance->end_Rest) {
-            $attendance->end_Rest = now();
-            $attendance->save();
+    public function endRest() {
+        $latestAttendance = Attendance::orderBy('created_at', 'desc')->first();
+
+        if ($latestAttendance) {
+            $latestRest = $latestAttendance->rests()->where('end_rest', null)->first();
+
+            if ($latestRest) {
+                $latestRest->update([
+                    'end_rest' => now(),
+                ]);
+            }
         }
+
         return redirect()->route('stamp');
     }
 
 
-
+    /*
     // 日付一覧関連
 
     public function attendance(Request $request)
@@ -122,8 +126,8 @@ class AttendanceController extends Controller
         foreach ($datebases as $datebase) {
             $datebase->start_time = Carbon::parse($datebase->start_time)->format('H:i:s');
             $datebase->end_time = Carbon::parse($datebase->end_time)->format('H:i:s');
-            $startRest = Carbon::parse($datebase->start_Rest);
-            $endRest = Carbon::parse($datebase->end_Rest);
+            $startRest = Carbon::parse($datebase->start_rest);
+            $endRest = Carbon::parse($datebase->end_rest);
             $datebase->rest_time = $endRest->diff($startRest)->format('%H:%I:%S');
 
             $startTime = Carbon::parse($datebase->start_time);
@@ -151,8 +155,8 @@ class AttendanceController extends Controller
         foreach ($datebases as $datebase) {
             $datebase->start_time = Carbon::parse($datebase->start_time)->format('H:i:s');
             $datebase->end_time = Carbon::parse($datebase->end_time)->format('H:i:s');
-            $startRest = Carbon::parse($datebase->start_Rest);
-            $endRest = Carbon::parse($datebase->end_Rest);
+            $startRest = Carbon::parse($datebase->start_rest);
+            $endRest = Carbon::parse($datebase->end_rest);
             $datebase->rest_time = $endRest->diff($startRest)->format('%H:%I:%S');
 
             $startTime = Carbon::parse($datebase->start_time);
