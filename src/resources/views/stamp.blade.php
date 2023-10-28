@@ -34,27 +34,6 @@
                 {{ Auth::user()->name }}さんお疲れ様です！
             </div>
 
-            @if ($startTimeButton)
-            Start Button is Active<br>
-            @else
-            Start Button is Inactive<br>
-            @endif
-            @if ($endTimeButton)
-            End Button is Active<br>
-            @else
-            End Button is Inactive<br>
-            @endif
-            @if ($startRestButton)
-            Rest Start Button is Active<br>
-            @else
-            Rest Start Button is Inactive<br>
-            @endif
-            @if ($endRestButton)
-            Rest EndButton is Active<br>
-            @else
-            Rest End Button is Inactive<br>
-            @endif
-
             <div class="time__content">
                 <div class="time__form">
                     <form class="form" action="{{ route('start_time') }}" method="post">

@@ -85,7 +85,7 @@
             @endif
 
             <div class="pagination">
-                <!-- {{ $datebases->links() }} -->
+                
             </div>
         </div>
     </main>
