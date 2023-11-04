@@ -32,15 +32,15 @@
         <div class="main__content">
             <div class="date__text">
                 <button class="date__mark">
-                    @if ($prevDate)
-                    <a href="{{ route('attendance.date', ['date' => $prevDate->toDateString()]) }}">＜</a>
-                    @endif
+
+                    <a href="{{ route('attendance') }}">＜</a>
+
                 </button>
-                {{ $today->toDateString() }}
+                {{ $date->toDateString() }}
                 <button class="date__mark">
-                    @if ($nextDate)
-                    <a href="{{ route('attendance.date', ['date' => $nextDate->toDateString()]) }}">＞</a>
-                    @endif
+
+                    <a href="{{ route('attendance') }}">＞</a>
+
                 </button>
             </div>
             <div class="date__content">
@@ -60,32 +60,27 @@
                     勤務時間
                 </div>
             </div>
-            @if ($datebases->count() > 0)
-            @foreach ($datebases as $datebase)
-            <div class="date__content">
-                <div class="date__content--record">
-                    {{ Auth::user()->name }}
+            @foreach($datebases as $datebase)
+                <div class="date__content">
+                    <div class="date__content--record">
+                        {{ Auth::user()->name }}
+                    </div>
+                    <div class="date__content--record">
+                        {{ $datebase->start_time }}
+                    </div>
+                    <div class="date__content--record">
+                        {{ $datebase->end_time }}
+                    </div>
+                    <div class="date__content--record">
+                        {{ $datebase->rest_time }}
+                    </div>
+                    <div class="date__content--record">
+                    </div>
                 </div>
-                <div class="date__content--record">
-                    {{ $datebase->start_time }}
-                </div>
-                <div class="date__content--record">
-                    {{ $datebase->end_time }}
-                </div>
-                <div class="date__content--record">
-                    {{ $datebase->rest_time }}
-                </div>
-                <div class="date__content--record">
-                    {{ $datebase->work_time }}
-                </div>
-            </div>
             @endforeach
-            @else
-            <p>出勤データがありません。</p>
-            @endif
 
             <div class="pagination">
-                
+
             </div>
         </div>
     </main>

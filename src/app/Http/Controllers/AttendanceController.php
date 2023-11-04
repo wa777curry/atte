@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Attendance;
 use App\Models\Rest;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Pagination\Paginator;
@@ -97,57 +98,68 @@ class AttendanceController extends Controller
 
     // 日付一覧関連
 
-    public function attendance(Request $request){
-        $today = Carbon::createFromFormat('Y-m-d', $request->input('date', now()->toDateString()));
-        $prevDate = $today->copy()->subDay();
-        $nextDate = $today->copy()->addDay();
+    public function attendance(Request $request) {
+        $date = Carbon::createFromFormat('Y-m-d', $request->input('date', now()->toDateString()));
 
-        $datebases = Attendance::whereDate('start_time', $today)->paginate(5);
+        $prevDate = $date->copy()->subDay();
+        $nextDate = $date->copy()->addDay();
+
+        $datebases = Attendance::with('rests')->whereDate('start_time',$date)->get();
 
         $datebases = $datebases->map(function ($datebase) {
             $datebase->start_time = Carbon::parse($datebase->start_time)->format('H:i:s');
             $datebase->end_time = Carbon::parse($datebase->end_time)->format('H:i:s');
-            $startRest = Carbon::parse($datebase->start_rest);
-            $endRest = Carbon::parse($datebase->end_rest);
-            $datebase->rest_time = $endRest->diff($startRest)->format('%H:%I:%S');
 
-            $startTime = Carbon::parse($datebase->start_time);
-            $endTime = Carbon::parse($datebase->end_time);
-            $restTime = Carbon::parse($datebase->rest_time);
-            $workTime = $endTime->diff($startTime->sub($endRest->diff($startRest)));
-            $datebase->work_time = $workTime->format('%H:%I:%S');
-            return $datebase;
-        });
+            if ($datebase->rests->isNotEmpty()) {
+                $totalRestTimeInSeconds = 0;
 
-        Paginator::useBootstrap();
+                foreach ($datebase->rests as $rest) {
+                    $startRest = Carbon::parse($rest->start_rest);
+                    $endRest = Carbon::parse($rest->end_rest);
+                    $restTimeInSeconds = $endRest->diffInSeconds($startRest); // 秒で計算
+                    $totalRestTimeInSeconds += $restTimeInSeconds;
+                }
+                $totalRestTime = gmdate('H:i:s', $totalRestTimeInSeconds);
+                $datebase->rest_time = $totalRestTime;
 
-        return view('attendance', compact('today', 'prevDate', 'nextDate', 'datebases'));
+
+            } else {
+                $datebase->rest_time = "休憩なし";
+            }
+                return $datebase;
+            });
+
+
+
+
+
+        return view('attendance', compact('date', 'datebases'));
     }
 
+    /*
     public function attendanceDate($date) {
         $date = Carbon::createFromFormat('Y-m-d', $date);
         $prevDate = $date->copy()->subDay();
         $nextDate = $date->copy()->addDay();
 
-        $datebases = Attendance::whereDate('start_time', $date)->get();
+        $workRecords = Attendance::whereDate('start_time', $date)->get();
+        $restRecords = Rest::whereDate('start_rest', $date)->get;
 
-        $datebases = $datebases->map(function ($datebase) {
-            $datebase->start_time = Carbon::parse($datebase->start_time)->format('H:i:s');
-            $datebase->end_time = Carbon::parse($datebase->end_time)->format('H:i:s');
-            $startRest = Carbon::parse($datebase->start_rest);
-            $endRest = Carbon::parse($datebase->end_rest);
-            $datebase->rest_time = $endRest->diff($startRest)->format('%H:%I:%S');
+        $datebase->start_time = Carbon::parse($datebase->start_time)->format('H:i:s');
+        $datebase->end_time = Carbon::parse($datebase->end_time)->format('H:i:s');
+        $startRest = Carbon::parse($datebase->start_rest);
+        $endRest = Carbon::parse($datebase->end_rest);
+        $datebase->rest_time = $endRest->diff($startRest)->format('%H:%I:%S');
 
-            $startTime = Carbon::parse($datebase->start_time);
-            $endTime = Carbon::parse($datebase->end_time);
-            $restTime = Carbon::parse($datebase->rest_time);
-            $workTime = $endTime->diff($startTime->sub($endRest->diff($startRest)));
-            $datebase->work_time = $workTime->format('%H:%I:%S');
-            return $datebase;
-        });
+        $startTime = Carbon::parse($datebase->start_time);
+        $endTime = Carbon::parse($datebase->end_time);
+        $restTime = Carbon::parse($datebase->rest_time);
+        $workTime = $endTime->diff($startTime->sub($endRest->diff($startRest)));
+        $datebase->work_time = $workTime->format('%H:%I:%S');
 
-        return view('attendance', compact('today', 'prevDate', 'nextDate', 'datebases'));
+        return view('attendance', compact('date', 'prevDate', 'nextDate', 'workRecords'));
     }
+    */
 
     // ログアウト関連
 
