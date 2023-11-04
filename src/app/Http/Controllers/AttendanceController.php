@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
+use Carbon\CarbonInterval;
 
 class AttendanceController extends Controller
 {
@@ -113,6 +114,7 @@ class AttendanceController extends Controller
             if ($datebase->rests->isNotEmpty()) {
                 $totalRestTimeInSeconds = 0;
 
+                // 休憩時間の計算
                 foreach ($datebase->rests as $rest) {
                     $startRest = Carbon::parse($rest->start_rest);
                     $endRest = Carbon::parse($rest->end_rest);
@@ -122,16 +124,21 @@ class AttendanceController extends Controller
                 $totalRestTime = gmdate('H:i:s', $totalRestTimeInSeconds);
                 $datebase->rest_time = $totalRestTime;
 
+                // 勤務時間の計算
+                $startWork = Carbon::parse($datebase->start_time);
+                $endWork = Carbon::parse($datebase->end_time);
+                $workTime = $endWork->diff(($startWork)->add(CarbonInterval::seconds($totalRestTimeInSeconds)));
+                $datebase->work_time = $workTime->format('%H:%I:%S');
 
             } else {
                 $datebase->rest_time = "休憩なし";
+                $startWork = Carbon::parse($datebase->start_time);
+                $endWork = Carbon::parse($datebase->end_time);
+                $workTime = $endWork->diff($startWork);
+                $datebase->work_time = $workTime->format('%H:%I:%S');
             }
                 return $datebase;
             });
-
-
-
-
 
         return view('attendance', compact('date', 'datebases'));
     }

@@ -75,6 +75,7 @@
                         {{ $datebase->rest_time }}
                     </div>
                     <div class="date__content--record">
+                        {{ $datebase->work_time }}
                     </div>
                 </div>
             @endforeach
