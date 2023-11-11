@@ -29,7 +29,6 @@ Route::middleware('auth')->group(function () {
     Route::post('/end_rest', [AttendanceController::class, 'endRest'])->name('end_rest');
 
     Route::get('/attendance', [AttendanceController::class, 'attendance'])->name('attendance');
-    Route::get('/attendance/{date}', [AttendanceController::class, 'attendanceDate'])->name('attendance.date');
 
-    Route::post('/logout', [AttendanceController::class, 'logout'])->name('logout');
+    Route::post('/logout', [UserController::class, 'logout'])->name('logout');
 });

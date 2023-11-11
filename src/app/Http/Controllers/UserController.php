@@ -28,6 +28,7 @@ class UserController extends Controller
         }
     }
 
+
     // 会員登録関連
 
     public function showRegisterForm() {
@@ -42,5 +43,15 @@ class UserController extends Controller
         ]);
 
         return redirect()->route('stamp');
+    }
+
+
+    // ログアウト関連
+
+    public function logout(Request $request) {
+        Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+        return redirect('/login');
     }
 }
