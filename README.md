@@ -25,7 +25,7 @@
 Laravel ８．８３．２７
 
 ## テーブル設計
-[table.pdf](https://github.com/wa777curry/atte/files/13366511/table.pdf)
+![table](https://github.com/wa777curry/atte/assets/136479019/491f9eb0-1fad-4d46-97e1-6a15a08af091)
 
 ## ER図
-[er.pdf](https://github.com/wa777curry/atte/files/13366536/er.pdf)
+![er](https://github.com/wa777curry/atte/assets/136479019/8e53e9ad-4c90-490e-948e-4194cb0d854e)
