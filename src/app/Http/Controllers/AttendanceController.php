@@ -4,16 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\Attendance;
 use App\Models\Rest;
-use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Pagination\Paginator;
-use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
-use Carbon\CarbonInterval;
 
-class AttendanceController extends Controller
-{
+class AttendanceController extends Controller {
     public function __construct() {
         $this->middleware('auth');
     }
@@ -23,14 +18,14 @@ class AttendanceController extends Controller
     public function index() {
         $user = Auth::user();
         $attendance = Attendance::where('user_id', $user->id)
-        ->where('end_time', null)
-        ->latest()
-        ->first();
-        if ($attendance) {
-            $rest = Rest::where('attendance_id', $attendance->id)
-            ->where('end_rest', null)
+            ->where('end_time', null)
             ->latest()
             ->first();
+        if ($attendance) {
+            $rest = Rest::where('attendance_id', $attendance->id)
+                ->where('end_rest', null)
+                ->latest()
+                ->first();
         }
 
         $startTimeButton = !$attendance || $attendance->end_time;
@@ -91,29 +86,36 @@ class AttendanceController extends Controller
     // 日付一覧関連
 
     public function attendance(Request $request) {
+        // データ処理のまとめ
+        $data = $this->createdata($request);
+
+        return view('attendance', $data);
+    }
+
+    private function createdata(Request $request) {
         $date = Carbon::createFromFormat('Y-m-d', $request->input('date', now()->toDateString())); // 日付の表示
         $prevDate = $date->copy()->subDay(); // 前日日付の取得
         $nextDate = $date->copy()->addDay(); // 翌日日付の取得
 
-        // DBからのデータ取得
-        $datebases = Attendance::with('rests')
-            ->where(function ($query) use ($date) {
-                $query->whereDate('start_time', $date) // 当日勤務開始あり
+        // DBから勤務データ取得
+        $databases = Attendance::with('rests')
+        ->where(function ($query) use ($date) {
+            $query->whereDate('start_time', $date) // 当日勤務開始あり
                 ->orWhereDate('end_time', $date) // 当日勤務終了あり
                 ->orWhere(function ($query) use ($date) {
                     $query->where('start_time', '<', $date->endOfDay()) // 前日以前勤務開始あり
-                    ->where('end_time', '>', $date->startOfDay()); // 翌日以降勤務終了あり
+                        ->where('end_time', '>', $date->startOfDay()); // 翌日以降勤務終了あり
                 });
-            })
+        })
             ->get();
 
-        $startWorkTime = null; // 初期値
-        $endWorkTime = null; // 初期値
+        $startWorkTime = null; // 勤務開始時間の初期値
+        $endWorkTime = null; // 勤務終了時間の初期値
 
-        $datebases = $datebases->map(function ($datebase) use ($request) {
-            $startWork = Carbon::parse($datebase->start_time); // 勤務開始の情報
-            $endWork = Carbon::parse($datebase->end_time); // 勤務終了の情報
+        $databases = $databases->map(function ($database) use ($request) {
             $pageDate = Carbon::parse($request->input('date', now()->toDateString())); // 基準日
+            $startWork = Carbon::parse($database->start_time); // 勤務開始の情報
+            $endWork = Carbon::parse($database->end_time); // 勤務終了の情報
 
             if ($startWork->isSameDay($pageDate) && $endWork->isSameDay($pageDate)) {
                 // 今日〜今日の勤務
@@ -124,114 +126,69 @@ class AttendanceController extends Controller
                 $startWorkTime = now()->startOfDay()->format('H:i:s'); // 今日の最初の時間
                 $endWorkTime = now()->endOfDay()->format('H:i:s'); // 今日の最後の時間
             } elseif ($startWork->isSameDay($pageDate) && !$endWork->isSameDay($pageDate)) {
-                    // 今日〜翌日以降の勤務
-                    $startWorkTime = $startWork->format('H:i:s');
-                    $endWorkTime = now()->endOfDay()->format('H:i:s'); // 今日の最後の時間
+                // 今日〜翌日以降の勤務
+                $startWorkTime = $startWork->format('H:i:s');
+                $endWorkTime = now()->endOfDay()->format('H:i:s'); // 今日の最後の時間
             } elseif (!$startWork->isSameDay($pageDate) && $endWork->isSameDay($pageDate)) {
-                    // 前日以前〜今日の勤務
-                    $startWorkTime = now()->startOfDay()->format('H:i:s'); // 今日の最初の時間
-                    $endWorkTime = $endWork->format('H:i:s');
+                // 前日以前〜今日の勤務
+                $startWorkTime = now()->startOfDay()->format('H:i:s'); // 今日の最初の時間
+                $endWorkTime = $endWork->format('H:i:s');
             }
 
-            $datebase->startWorkTime = $startWorkTime;
-            $datebase->endWorkTime = $endWorkTime;
+            $database->startWorkTime = $startWorkTime;
+            $database->endWorkTime = $endWorkTime;
 
-            return $datebase;
-        });
+            // 休憩時間の計算
+            if ($database->rests->isNotEmpty()) {
+                $totalRestTimeInSeconds = 0; // 休憩時間の初期値
+                $totalWorkTimeInSeconds = 0; // 勤務合計時間の初期値
 
-        return view('attendance', compact('date', 'datebases', 'prevDate', 'nextDate'));
-    }
-}
-        /*
-        $datebases = Attendance::with('rests')
-            ->whereDate('start_time', $date) // DBから勤務開始時間の引用
-            ->whereDate('end_time', $date) // DBから勤務終了時間の引用
-            ->get();
+                foreach ($database->rests as $rest) {
+                    $startRest = Carbon::parse($rest->start_rest); // 休憩開始の情報
+                    $endRest = Carbon::parse($rest->end_rest); // 休憩終了の情報
 
-        $datebases = $datebases->map(
-            function ($datebase) use (&$startWork, &$endWork, $date) {
-                $startDate = Carbon::parse($datebase->start_time);
-                $endDate = Carbon::parse($datebase->end_time);
-
-                if ($startDate->isSameDay($date) && $endDate->isSameDay($date)) {
-                    // 今日〜今日の勤務
-                    $startWork = $startDate;
-                    $endWork = $endDate;
-                } elseif (!$startDate->isSameDay($date) && !$endDate->isSameDay($date)) {
-                    // 前日以前〜翌日以降の勤務
-                    $startWork = now()->startOfDay(); // 今日の最初の時間
-                    $endWork = now()->endOfDay(); // 今日の最後の時
-                } else {
-                    if ($startDate->isSameDay($date) && !$endDate->isSameDay($date)) {
-                        // 今日〜翌日以降の勤務
-                        $startWork = $startDate;
-                        $endWork = now()->endOfDay(); // 今日の最後の時
-                    } elseif (!$startDate->isSameDay($date) && $endDate->isSameDay($date)) {
-                        // 前日以前〜今日の勤務
-                        $startWork = now()->startOfDay(); // 今日の最初の時間
-                        $endWork = $endDate;
+                    // 休憩時間、勤務時間の計算
+                    if ($startRest->isSameDay($pageDate) && $endRest->isSameDay($pageDate)) {
+                        // 今日〜今日の休憩
+                        $totalRestTimeInSeconds += $endRest->diffInSeconds($startRest);
+                        $totalWorkTimeInSeconds = Carbon::parse($endWorkTime)->diffInSeconds(Carbon::parse($startWorkTime)) - $totalRestTimeInSeconds;
+                    } elseif (!$startRest->isSameDay($pageDate) && !$endRest->isSameDay($pageDate)) {
+                        // 前日以前〜翌日以降の休憩
+                        $totalRestTimeInSeconds += now()->endOfDay()->diffInSeconds(now()->startOfDay());
+                        $totalWorkTimeInSeconds = Carbon::parse($endWorkTime)->diffInSeconds(Carbon::parse($startWorkTime)) - $totalRestTimeInSeconds;
+                    } elseif ($startRest->isSameDay($pageDate) && !$endRest->isSameDay($pageDate)) {
+                        // 今日〜翌日以降の休憩
+                        $totalRestTimeInSeconds += now()->endOfDay()->diffInSeconds($startRest);
+                        $totalWorkTimeInSeconds = Carbon::parse($endWorkTime)->diffInSeconds(Carbon::parse($startWorkTime)) - $totalRestTimeInSeconds;
+                    } elseif (!$startRest->isSameDay($pageDate) && $endRest->isSameDay($pageDate)) {
+                        // 前日以前〜今日の休憩
+                        $totalRestTimeInSeconds += $endRest->diffInSeconds(now()->startOfDay());
+                        $totalWorkTimeInSeconds = Carbon::parse($endWorkTime)->diffInSeconds(Carbon::parse($startWorkTime)) - $totalRestTimeInSeconds;
                     }
                 }
-                return $datebase;
-            }
-        );
-
-        return view('attendance', compact('date', 'datebases', 'prevDate', 'nextDate', 'startWork', 'endWork'));
-
-    }
-}
-
-            /*
-        $datebases = $datebases->map(function ($datebase) {
-            $datebase->start_time = Carbon::parse($datebase->start_time);
-            $datebase->end_time = Carbon::parse($datebase->end_time);
-
-            if ($datebase->rests->isNotEmpty()) {
-                $totalRestTimeInSeconds = 0;
-
-                // 休憩時間の計算
-                foreach ($datebase->rests as $rest) {
-                    $startRest = Carbon::parse($rest->start_rest);
-                    $endRest = Carbon::parse($rest->end_rest);
-                    $restTimeInSeconds = $endRest->diffInSeconds($startRest); // 秒で計算
-                    $totalRestTimeInSeconds += $restTimeInSeconds;
-                }
-                $totalRestTime = gmdate('H:i:s', $totalRestTimeInSeconds);
-                $datebase->rest_time = $totalRestTime;
-
-                // 勤務時間の計算（休憩あり）
-                $startWork = Carbon::parse($datebase->start_time);
-                    // ３パターンで分岐する（同日、
-                $endWork = Carbon::parse($datebase->end_time);
-                    // ３パターンで分岐する
-
-                if ($startWork->isSameDay($endWork)) {
-                    // 同じ日に勤務が開始と終了した場合
-                    $workTime = $endWork->diffInSeconds($startWork);
-                    $totalWorkTimeInSeconds = $workTime - $totalRestTimeInSeconds;
-                    $totalWorkTime = CarbonInterval::seconds($totalWorkTimeInSeconds);
-                    $totalWorkTime = gmdate('H:i:s', $totalWorkTimeInSeconds);
-                    $datebase->work_time = $totalWorkTime;
-                } else {
-                    // 日付が変わった場合
-                    $workTimeToday = $startWork->copy()->endOfDay()->diffInSeconds($startWork);
-                    $workTimeTomorrow = $endWork->copy()->startOfDay()->diffInSeconds($endWork);
-                    $totalWorkTimeInSeconds = $workTimeToday + $workTimeTomorrow - $totalRestTimeInSeconds;
-                    $totalWorkTime = CarbonInterval::seconds($totalWorkTimeInSeconds);
-                    $totalWorkTime = gmdate('H:i:s', $totalWorkTimeInSeconds);
-                    $datebase->work_time = $totalWorkTime;
-                }
-
+                $totalRestTime = gmdate('H:i:s', $totalRestTimeInSeconds); // 秒から時間への表記変更
+                $totalWorkTime = gmdate('H:i:s', $totalWorkTimeInSeconds); // 秒から時間への表記変更
+                $database->totalRestTime = $totalRestTime;
+                $database->totalWorkTime = $totalWorkTime;
             } else {
-                $datebase->rest_time = "休憩なし";
-                $startWork = Carbon::parse($datebase->start_time);
-                $endWork = Carbon::parse($datebase->end_time);
-                $workTime = $endWork->diff($startWork);
-                $datebase->work_time = $workTime->format('%H:%I:%S');
+                $database->totalRestTime = "休憩なし";
+                $totalWorkTimeInSeconds = Carbon::parse($endWorkTime)->diffInSeconds(Carbon::parse($startWorkTime));
+                $totalWorkTime = gmdate('H:i:s', $totalWorkTimeInSeconds); // 秒から時間への表記変更
+                $database->totalWorkTime = $totalWorkTime;
             }
-                return $datebase;
-            });
 
-        return view('attendance', compact('date', 'datebases', 'prevDate', 'nextDate'));
+            return $database;
+        });
+
+        $perPage = 5; // 画面の表示件数
+        $currentPage = \Illuminate\Pagination\Paginator::resolveCurrentPage() ?: 1; // 現在のページ番号
+        $items = $databases->forPage($currentPage, $perPage)->all(); // 現在のページの件数取得
+        $totalItems = count($databases);
+
+        $path = $request->url('/attendance');
+        $databasesCollection = new \Illuminate\Pagination\LengthAwarePaginator($items, $totalItems, $perPage, $currentPage);
+        $databasesCollection->withPath(route('attendance', ['date' => $date->toDateString()]));
+
+        return compact('date', 'databases', 'prevDate', 'nextDate', 'databasesCollection');
     }
 }

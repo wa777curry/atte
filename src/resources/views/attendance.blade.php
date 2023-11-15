@@ -34,7 +34,9 @@
                 <button class="date__mark">
                     <a href="{{ route('attendance', ['date' => $prevDate->toDateString()]) }}">＜</a>
                 </button>
-                {{ $date->toDateString() }}
+                <span>
+                    {{ $date->toDateString() }}
+                </span>
                 <button class="date__mark">
                     <a href="{{ route('attendance', ['date' => $nextDate->toDateString()]) }}">＞</a>
                 </button>
@@ -58,23 +60,23 @@
             </div>
 
             <!-- 出勤データがある場合 -->
-            @if ($datebases->count() > 0)
-            @foreach($datebases as $datebase)
+            @if ($databasesCollection->count() > 0)
+            @foreach($databasesCollection as $database)
             <div class="date__content">
                 <div class="date__content--record">
                     {{ Auth::user()->name }}
                 </div>
                 <div class="date__content--record">
-                    {{ $datebase->startWorkTime }}
+                    {{ $database->startWorkTime }}
                 </div>
                 <div class="date__content--record">
-                    {{ $datebase->endWorkTime }}
+                    {{ $database->endWorkTime }}
                 </div>
                 <div class="date__content--record">
-                    {{ $datebase->rest_time }}
+                    {{ $database->totalRestTime }}
                 </div>
                 <div class="date__content--record">
-                    {{ $datebase->work_time }}
+                    {{ $database->totalWorkTime }}
                 </div>
             </div>
             @endforeach
@@ -84,7 +86,7 @@
             @endif
 
             <div class="pagination">
-
+                {{ $databasesCollection->links() }}
             </div>
         </div>
     </main>

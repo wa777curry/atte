@@ -28,7 +28,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/start_rest', [AttendanceController::class, 'startRest'])->name('start_rest');
     Route::post('/end_rest', [AttendanceController::class, 'endRest'])->name('end_rest');
 
-    Route::get('/attendance', [AttendanceController::class, 'attendance'])->name('attendance');
+    Route::get('/attendance/{page?}', [AttendanceController::class, 'attendance'])->name('attendance');
 
     Route::post('/logout', [UserController::class, 'logout'])->name('logout');
 });
