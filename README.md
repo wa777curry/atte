@@ -27,4 +27,4 @@ Laravel ８．８３．２７
 [table.pdf](https://github.com/wa777curry/atte/files/13366511/table.pdf)
 
 ## ER図
-![er](https://github.com/wa777curry/atte/assets/136479019/49168313-c461-4adb-ab2d-32acd0099105)
+[er.pdf](https://github.com/wa777curry/atte/files/13366536/er.pdf)
